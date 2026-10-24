@@ -1,0 +1,31 @@
+# JS
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Rust
+target/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Models & caches (weights are never committed — see §13.3)
+models/install/
+*.onnx
+!tools/fixtures/**/*.onnx
+
+# Local data
+qbcam.db*
+*.log
+.tmp/
+
+# OS
+.DS_Store
+
+# Generated signing keys (local dev only)
+*.pem
+!edge/**/test-key*.pem
