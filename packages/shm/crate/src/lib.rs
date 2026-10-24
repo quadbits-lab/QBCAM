@@ -86,7 +86,14 @@ unsafe impl Sync for Mapping {}
 
 impl Mapping {
     fn open(name: &str, create: bool, size: Option<usize>) -> ShmResult<Self> {
-        if name.is_empty() || name.len() > MAX_NAME_BYTES || !name.starts_with('/') {
+        // Normalize: POSIX shm names must start with '/'; contract ring names
+        // ("qbcam.<session>.<ring>") don't include it.
+        let name = if name.starts_with('/') {
+            name.to_string()
+        } else {
+            format!("/{name}")
+        };
+        if name.is_empty() || name.len() > MAX_NAME_BYTES {
             return Err(ShmError(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "ring name must start with '/' and be <= 128 bytes",
@@ -132,6 +139,11 @@ impl Mapping {
     }
 
     fn unlink(name: &str) -> ShmResult<()> {
+        let name = if name.starts_with('/') {
+            name.to_string()
+        } else {
+            format!("/{name}")
+        };
         let c = std::ffi::CString::new(name).map_err(|_| {
             ShmError(io::Error::new(io::ErrorKind::InvalidInput, "bad ring name"))
         })?;

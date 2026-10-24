@@ -1,14 +1,14 @@
 {
   "schemaVersion": "mimosa-hook-status/v1",
-  "recordedAt": "2026-10-24T16:29:21.544Z",
+  "recordedAt": "2026-10-24T16:34:07.441Z",
   "sessionId": "session_baf4a71c84123415b99979a813e44c5c",
   "event": "PostToolUse",
   "toolName": "Edit",
-  "file": "apps/desktop/src/main/rpc/sidecar-server.ts",
+  "file": "packages/shm/crate/src/lib.rs",
   "outcome": "clear",
   "coverage": "complete",
   "findingCount": 0,
-  "durationMs": 3,
+  "durationMs": 5,
   "hostState": "hook_complete",
   "reportHint": ".mimosa/reports/"
 }
