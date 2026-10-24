@@ -1,10 +1,10 @@
 {
   "schemaVersion": "mimosa-hook-status/v1",
-  "recordedAt": "2026-10-24T16:11:56.574Z",
+  "recordedAt": "2026-10-24T16:29:21.544Z",
   "sessionId": "session_baf4a71c84123415b99979a813e44c5c",
   "event": "PostToolUse",
-  "toolName": "Write",
-  "file": "packages/shm/ts/reader.test.ts",
+  "toolName": "Edit",
+  "file": "apps/desktop/src/main/rpc/sidecar-server.ts",
   "outcome": "clear",
   "coverage": "complete",
   "findingCount": 0,

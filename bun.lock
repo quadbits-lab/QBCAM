@@ -9,12 +9,24 @@
         "typescript": "^5.7.0",
       },
     },
+    "apps/desktop": {
+      "name": "@qbcam/desktop",
+      "version": "0.1.0",
+      "dependencies": {
+        "@qbcam/contracts": "workspace:*",
+        "@qbcam/shm-ts": "workspace:*",
+      },
+    },
     "packages/contracts": {
       "name": "@qbcam/contracts",
       "version": "0.1.0",
       "dependencies": {
         "@sinclair/typebox": "^0.34.0",
       },
+    },
+    "packages/shm": {
+      "name": "@qbcam/shm-ts",
+      "version": "0.1.0",
     },
   },
   "packages": {
@@ -41,6 +53,10 @@
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.6.3", "", { "os": "win32", "cpu": "x64" }, "sha512-GhtOPphBWlnCepqpNk/w5eGN5oGRCzL20EbAkL1XCIpyboeVC9R642noyT43l8LSenGS4qz9IL8sKPfwY37V/Q=="],
 
     "@qbcam/contracts": ["@qbcam/contracts@workspace:packages/contracts"],
+
+    "@qbcam/desktop": ["@qbcam/desktop@workspace:apps/desktop"],
+
+    "@qbcam/shm-ts": ["@qbcam/shm-ts@workspace:packages/shm"],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.34.52", "", {}, "sha512-XiMQh7qqVlxZzcVD+kkGMNGMzcTrDMLWI7S4x7z1MkCkbDPrekpZXEUK0eZqZFMuHQg2a2DZOcDIh9o5v3Gonw=="],
 
