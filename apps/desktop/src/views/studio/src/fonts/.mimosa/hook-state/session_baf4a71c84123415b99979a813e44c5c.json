@@ -1,0 +1,41 @@
+{
+  "touched": [],
+  "bashMutation": false,
+  "reportedFindings": [],
+  "findingEvents": [],
+  "baseline": {
+    "storageId": "mvmqiqvi-5387-4106236ca9",
+    "createdAt": "2026-10-24T18:31:03.054Z",
+    "files": {},
+    "complete": false,
+    "candidateLimit": 5000,
+    "discoveredFiles": 0,
+    "capturedFiles": 0,
+    "truncated": false,
+    "omittedAtLeast": 0,
+    "firstOmitted": "",
+    "errors": [
+      {
+        "stage": "baseline-capture",
+        "target": ".",
+        "reason": "global task baseline was unavailable; captured only the touched file"
+      },
+      {
+        "stage": "baseline-snapshot",
+        "target": "../store.ts",
+        "reason": "file is outside project"
+      },
+      {
+        "stage": "baseline-snapshot",
+        "target": "../store.ts",
+        "reason": "file is outside project"
+      },
+      { "stage": "baseline-snapshot", "target": "../main.tsx", "reason": "file is outside project" }
+    ]
+  },
+  "stateErrors": [],
+  "omittedReportedFindings": 0,
+  "omittedFindingEvents": 0,
+  "processing": null,
+  "updatedAt": "2026-10-24T18:31:53.240Z"
+}

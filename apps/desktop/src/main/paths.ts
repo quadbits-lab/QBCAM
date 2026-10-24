@@ -1,6 +1,27 @@
 /** App data directories per OS (spec §11.2). */
+import { existsSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+
+/**
+ * Repository root. Prefers QBCAM_ROOT, then walks up from cwd (Hutch runs the
+ * bundled main process with the app directory as cwd), and only then falls
+ * back to the compiled module location (plain `bun run`).
+ */
+export function repoRoot(): string {
+  const override = process.env.QBCAM_ROOT;
+  if (override) return override;
+  let dir = process.cwd();
+  for (;;) {
+    if (existsSync(join(dir, "Cargo.toml")) && existsSync(join(dir, "apps", "desktop"))) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return join(import.meta.dir, "..", "..", "..", "..");
+}
 
 export function dataDir(): string {
   switch (process.platform) {

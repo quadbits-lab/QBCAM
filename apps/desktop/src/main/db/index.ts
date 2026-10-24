@@ -19,11 +19,16 @@ export class Store {
       "CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at INTEGER NOT NULL)",
     );
     const applied = new Set(
-      this.db.query("SELECT name FROM _migrations").all().map((r) => (r as { name: string }).name),
+      this.db
+        .query("SELECT name FROM _migrations")
+        .all()
+        .map((r) => (r as { name: string }).name),
     );
     let files: string[] = [];
     try {
-      files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
+      files = readdirSync(dir)
+        .filter((f) => f.endsWith(".sql"))
+        .sort();
     } catch {
       return;
     }
@@ -208,7 +213,13 @@ export class Store {
       .run(snap.id, snap.sessionId, snap.path, snap.w, snap.h, snap.format, snap.createdAt);
   }
 
-  insertProvenance(p: { id: string; assetId: string; manifestJson: string; signer: string; signedAt: number }) {
+  insertProvenance(p: {
+    id: string;
+    assetId: string;
+    manifestJson: string;
+    signer: string;
+    signedAt: number;
+  }) {
     this.db
       .prepare(
         "INSERT OR REPLACE INTO provenance (id, asset_id, manifest_json, signer, signed_at) VALUES (?,?,?,?,?)",
@@ -229,12 +240,12 @@ export class Store {
     createdAt: number;
     provenanceSigned: boolean;
   }> {
-    const recs = this.db
-      .query("SELECT * FROM recording ORDER BY created_at DESC")
-      .all() as Array<Record<string, unknown>>;
-    const snaps = this.db
-      .query("SELECT * FROM snapshot ORDER BY created_at DESC")
-      .all() as Array<Record<string, unknown>>;
+    const recs = this.db.query("SELECT * FROM recording ORDER BY created_at DESC").all() as Array<
+      Record<string, unknown>
+    >;
+    const snaps = this.db.query("SELECT * FROM snapshot ORDER BY created_at DESC").all() as Array<
+      Record<string, unknown>
+    >;
     return [
       ...recs.map((r) => ({
         id: r.id as string,
@@ -318,7 +329,9 @@ export class Store {
 
   insertJob(j: { id: string; type: string; input: string; presetId?: string; createdAt: number }) {
     this.db
-      .prepare("INSERT INTO job (id, type, input, state, preset_id, created_at) VALUES (?,?,?,?,?,?)")
+      .prepare(
+        "INSERT INTO job (id, type, input, state, preset_id, created_at) VALUES (?,?,?,?,?,?)",
+      )
       .run(j.id, j.type, j.input, "queued", j.presetId ?? null, j.createdAt);
   }
 
@@ -328,10 +341,20 @@ export class Store {
       .run(state, progress, output ?? null, id);
   }
 
-  listJobs(): Array<{ id: string; type: string; input: string; output: string | null; state: string; progress: number; createdAt: number }> {
-    return (this.db.query("SELECT * FROM job ORDER BY created_at DESC").all() as Array<
-      Record<string, unknown>
-    >).map((r) => ({
+  listJobs(): Array<{
+    id: string;
+    type: string;
+    input: string;
+    output: string | null;
+    state: string;
+    progress: number;
+    createdAt: number;
+  }> {
+    return (
+      this.db.query("SELECT * FROM job ORDER BY created_at DESC").all() as Array<
+        Record<string, unknown>
+      >
+    ).map((r) => ({
       id: r.id as string,
       type: r.type as string,
       input: r.input as string,

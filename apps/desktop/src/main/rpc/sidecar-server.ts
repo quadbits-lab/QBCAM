@@ -23,7 +23,7 @@ export class SidecarServer {
   private handlers = new Map<string, Handler>();
   private conns = new Set<Conn>();
   private stopFlag = false;
-  private server: ReturnType<typeof Bun.listen> | null = null;
+  private server: { stop(force?: boolean): void } | null = null;
 
   constructor(
     private socketPath: string,
@@ -44,7 +44,9 @@ export class SidecarServer {
           this.conns.add(conn);
         },
         data: (sock, data) => void this.onData(sock as unknown as Conn, data),
-        close: (sock) => this.conns.delete(sock as unknown as Conn),
+        close: (sock) => {
+          this.conns.delete(sock as unknown as Conn);
+        },
         error: (_sock, err) => console.error("[sidecar] socket error:", err),
       },
     });

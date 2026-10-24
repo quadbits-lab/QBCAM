@@ -47,6 +47,8 @@ only. See `docs/adr/` for all ten decisions.
 ```bash
 # 1. Prereqs: bun, uv, rust (cargo), ffmpeg
 brew install oven-sh/bun/bun uv ffmpeg && curl --proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh
+# optional, for the native window: Hutch (Electrobun's build CLI)
+curl -fsSL https://hutch.blackboard.sh/hutch/install.sh | sh
 
 # 2. Install everything
 bun install
@@ -58,10 +60,11 @@ bun run models:dev
 
 # 4a. Run the app (headless shell → browser)
 bun run dev            # prints http://127.0.0.1:<port> (token included)
-# → Studio opens; wizard → Start Pipeline → live preview at ~45 FPS
+# → first-run onboarding → Studio → Start Pipeline → live preview
 
-# 4b. Or run the desktop shell (Electrobun 2.x — shell milestone WIP)
-bunx electrobun init   # scaffolding; see docs/adr/010-shell-adapter.md
+# 4b. Or run the native Electrobun window (Hutch + system webview)
+bun run dev:desktop    # prepares .hutch/devkit, builds Studio, opens the QBCAM window
+                       # first run downloads the pinned Electrobun 2.0.4 devkit
 
 # 5. Quality gates
 bun run lint && bun run test          # TS: hub, supervisor, store, shm parser
@@ -78,6 +81,31 @@ bun run tools/scripts/integration-record.ts   # + recorder (ffprobe-validated) +
 Output artifacts land in `~/QBCAM/{Recordings,Snapshots,Exports}` with XMP
 provenance sidecars. App data lives under
 `~/Library/Application Support/QBCAM` (macOS) / `~/.qbcam` (Linux/Windows).
+
+## First run (onboarding)
+
+Studio is gated until setup completes:
+
+1. **Consent** — acceptable-use attestation.
+2. **Permissions** — camera/mic cards; the probe raises the macOS TCC prompt.
+3. **Camera & mic** — real stills from the ffmpeg capture path, mic level meter,
+   device pickers, or “continue without a camera” (synthetic source).
+4. **Models** — detector install (required) + optional BYO swap ONNX.
+5. **Source face** — optional identity import with consent.
+6. **Ready** — readiness checklist, then Open Studio.
+
+Re-run setup from **Settings → Run setup again**. For headless/CI runs,
+`QBCAM_ALLOW_UNONBOARDED=1` bypasses the `startPipeline` gate.
+
+### macOS permissions
+
+The build hook adds `NSCameraUsageDescription` / `NSMicrophoneUsageDescription`
+to the app bundle (dev and release). If a stale denial survives a dev rebuild:
+
+```bash
+bun run --cwd apps/desktop permissions:reset   # tccutil reset Camera/Microphone
+# restart the app, then approve the prompt again
+```
 
 ## Trust & safety rails (spec §14 — implemented)
 
@@ -99,9 +127,10 @@ supervisor (restart/backoff/heartbeat) · JSON-RPC/UDS ×3 languages ·
 YuNet detection + tracking + stub/BYO swap + blend + adaptive governor ·
 preview WS · recorder (ffprobe-validated MP4) · vcam mock contract ·
 provenance · model-manager with signed manifests · Studio UI (browser-
-verified) · edge workers (wrangler-dev verified) · CI.
+verified) · Electrobun window shell (Hutch 2.x, system webview) ·
+edge workers (wrangler-dev verified) · CI.
 
 Deferred (documented in the spec): native per-OS virtual cameras (M3),
-Electrobun window shell (next shell milestone), installers/notarization
-(M6–M7), audio recording, NSFW/age classifiers (TS-07/08), Windows/Linux
-runtime verification. See `docs/compat.md` for the client matrix state.
+installers/notarization (M6–M7), audio recording, NSFW/age classifiers
+(TS-07/08), Windows/Linux runtime verification. See `docs/compat.md` for the
+client matrix state.

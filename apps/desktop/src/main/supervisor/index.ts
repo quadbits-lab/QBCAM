@@ -6,11 +6,12 @@
  * shell: false). Executables/arguments come from the static services
  * registry — never from user input.
  */
-import { mkdirSync, rmSync } from "node:fs";
+
 import { randomBytes } from "node:crypto";
+import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { RpcClient } from "../rpc/client";
-import { spawnBunSidecar, spawnInterpSidecar, type SidecarProcess } from "./spawn-safe";
+import { type SidecarProcess, spawnBunSidecar, spawnInterpSidecar } from "./spawn-safe";
 
 export type ServiceLaunch =
   | { kind: "bun"; scriptPath: string }
@@ -163,5 +164,15 @@ export class SupervisedService {
     this.client = null;
     rmSync(this.socketPath, { force: true });
     this.setState("stopped");
+  }
+
+  /** Synchronous last-resort kill for process-exit paths that cannot await. */
+  killNow(): void {
+    this.stopping = true;
+    this.stopHeartbeat();
+    this.proc?.kill(9);
+    this.proc = null;
+    this.client?.close();
+    this.client = null;
   }
 }

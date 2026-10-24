@@ -9,7 +9,7 @@
  *   dist/py/qbcam_contracts.py — Pydantic models (via datamodel-code-generator)
  * CI fails if committed output differs (drift guard, spec §10.4).
  */
-import { Type, type TSchema } from "@sinclair/typebox";
+import { type TSchema, Type } from "@sinclair/typebox";
 
 // ---------- primitives ----------
 
@@ -121,11 +121,9 @@ export const ParamPatch = Type.Object({
   enhanceEnabled: Type.Optional(Type.Boolean()),
   enhanceStrength: Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
   temporalAlpha: Type.Optional(Type.Number({ minimum: 0, maximum: 1 })),
-  failSafe: Type.Optional(Type.Union([
-    Type.Literal("slate"),
-    Type.Literal("freeze"),
-    Type.Literal("passthrough"),
-  ])),
+  failSafe: Type.Optional(
+    Type.Union([Type.Literal("slate"), Type.Literal("freeze"), Type.Literal("passthrough")]),
+  ),
 });
 
 export const PipelineSetParams = ParamPatch;
@@ -317,13 +315,17 @@ export const Events = {
   "service.state": Type.Object({ service: Type.String(), state: ServiceState }),
   "pipeline.stats": PipelineStats,
   "pipeline.degraded": Type.Object({ reason: Type.String() }),
-  "pipeline.faces": Type.Object({ faces: Type.Array(Type.Object({
-    trackId: Type.Integer(),
-    x: Type.Number(),
-    y: Type.Number(),
-    w: Type.Number(),
-    h: Type.Number(),
-  })) }),
+  "pipeline.faces": Type.Object({
+    faces: Type.Array(
+      Type.Object({
+        trackId: Type.Integer(),
+        x: Type.Number(),
+        y: Type.Number(),
+        w: Type.Number(),
+        h: Type.Number(),
+      }),
+    ),
+  }),
   "recorder.progress": Type.Object({
     recordingId: Type.String(),
     seconds: Type.Number(),
@@ -354,12 +356,15 @@ export const Methods = {
   "pipeline.stats": [PipelineStatsRequest, PipelineStatsResult],
   "pipeline.stop": [PipelineStop, PipelineStopResult],
   // identity (owned by qb-core DB; embedding via qb-vision "identity.embed")
-  "identity.embed": [Type.Object({ paths: Type.Array(Type.String()) }), Type.Object({
-    embedding: Type.Array(Type.Number()),
-    quality: Type.Number(),
-    detectedFaces: Type.Integer(),
-    bestPath: Type.String(),
-  })],
+  "identity.embed": [
+    Type.Object({ paths: Type.Array(Type.String()) }),
+    Type.Object({
+      embedding: Type.Array(Type.Number()),
+      quality: Type.Number(),
+      detectedFaces: Type.Integer(),
+      bestPath: Type.String(),
+    }),
+  ],
   // qb-vcam
   "vcam.describe": [VCamDescribe, VCamDescribeResult],
   "vcam.install": [VCamInstall, VCamInstallResult],
@@ -373,12 +378,18 @@ export const Methods = {
   "recorder.status": [RecorderStatus, RecorderStatusResult],
   // qb-media
   "still.capture": [StillCapture, StillCaptureResult],
-  "media.sign": [Type.Object({
-    path: Type.String(),
-    kind: Type.Union([Type.Literal("recording"), Type.Literal("snapshot")]),
-    faceSwap: Type.Boolean(),
-  }), Type.Object({ signed: Type.Boolean(), sidecarPath: Type.String() })],
-  "media.thumbnail": [Type.Object({ path: Type.String() }), Type.Object({ thumbPath: Type.String() })],
+  "media.sign": [
+    Type.Object({
+      path: Type.String(),
+      kind: Type.Union([Type.Literal("recording"), Type.Literal("snapshot")]),
+      faceSwap: Type.Boolean(),
+    }),
+    Type.Object({ signed: Type.Boolean(), sidecarPath: Type.String() }),
+  ],
+  "media.thumbnail": [
+    Type.Object({ path: Type.String() }),
+    Type.Object({ thumbPath: Type.String() }),
+  ],
   // models (qb-core model-manager worker)
   "models.ensure": [ModelsEnsure, ModelsEnsureResult],
   "models.list": [ModelsList, ModelsListResult],

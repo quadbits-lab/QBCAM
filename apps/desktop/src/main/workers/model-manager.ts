@@ -1,50 +1,41 @@
 /**
- * Main-process glue for the model-manager worker (spec §13.2).
+ * Main-process glue for model installs (spec §13.2).
+ *
+ * Deliberately in-process: the desktop bundler emits only the main entrypoint,
+ * so a `new Worker(new URL("./…worker.ts", import.meta.url))` would point at a
+ * file that does not exist in the bundle and the UI would hang forever. The
+ * payload is a few hundred KB; fetch/hash work is negligible on the main loop.
  */
 import { mkdirSync } from "node:fs";
 import { modelsDir } from "../paths";
+import { ensureModel, type ModelProgress } from "./model-store";
 
 export interface ModelManagerHandle {
   ensure(modelId: string): Promise<void>;
   terminate(): void;
-  setProgressListener(fn: (m: { modelId: string; stage: string; percent: number }) => void): void;
+  setProgressListener(fn: (m: ModelProgress) => void): void;
   setDoneListener(fn: (m: { modelId: string; ok: boolean; error?: string }) => void): void;
 }
 
 export function startModelManager(): ModelManagerHandle {
   const dir = modelsDir();
   mkdirSync(dir, { recursive: true });
-  const worker = new Worker(new URL("./model-manager.worker.ts", import.meta.url).href);
-  let progressListener: ((m: { modelId: string; stage: string; percent: number }) => void) | null =
-    null;
+  let progressListener: ((m: ModelProgress) => void) | null = null;
   let doneListener: ((m: { modelId: string; ok: boolean; error?: string }) => void) | null = null;
-  const pending = new Map<string, { resolve: () => void; reject: (e: Error) => void }>();
-
-  worker.postMessage({ type: "init", modelsDir: dir });
-
-  worker.onmessage = (ev: MessageEvent<Record<string, unknown>>) => {
-    const msg = ev.data;
-    if (msg.type === "progress") {
-      progressListener?.(msg as { modelId: string; stage: string; percent: number });
-    } else if (msg.type === "done") {
-      const m = msg as { modelId: string; ok: boolean; error?: string };
-      const p = pending.get(m.modelId);
-      pending.delete(m.modelId);
-      if (m.ok) p?.resolve();
-      else p?.reject(new Error(m.error ?? "model install failed"));
-      doneListener?.(m);
-    }
-  };
 
   return {
-    ensure(modelId: string) {
-      return new Promise((resolve, reject) => {
-        pending.set(modelId, { resolve, reject });
-        worker.postMessage({ type: "ensure", modelId });
-      });
+    async ensure(modelId: string) {
+      try {
+        await ensureModel(modelId, dir, (m) => progressListener?.(m));
+        doneListener?.({ modelId, ok: true });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        doneListener?.({ modelId, ok: false, error: message });
+        throw new Error(message);
+      }
     },
     terminate() {
-      worker.terminate();
+      // Nothing to tear down: installs are awaited by the RPC handler.
     },
     setProgressListener(fn) {
       progressListener = fn;

@@ -65,6 +65,7 @@ export class RingDiag {
     if (fd < 0) throw new Error(`cannot open ring ${name} (errno ${fd})`);
     const p = lib.symbols.mmap(null, windowBytes, PROT_READ_WRITE, MAP_SHARED, fd, 0);
     lib.symbols.close(fd);
+    if (!p) throw new Error(`mmap failed for ${name}`);
     if (Number(p.valueOf()) <= 0) throw new Error(`mmap failed for ${name}`);
     this.dv = new DataView(toBuffer(p, 0, windowBytes).buffer);
     this.mapped = { p, len: windowBytes };

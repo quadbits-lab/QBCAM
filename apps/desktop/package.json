@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "bun run src/main/index.ts",
     "dev:headless": "bun run src/main/index.ts --headless",
+    "desktop": "hutch run dev",
+    "desktop:build": "hutch run build",
+    "permissions:reset": "sh scripts/permissions-reset.sh",
     "build": "echo 'electrobun build wired in P8'",
     "test": "bun test"
   },

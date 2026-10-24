@@ -4,11 +4,11 @@
  * restarted after being killed (spec §6.1).
  */
 import { describe, expect, test } from "bun:test";
-import { SupervisedService } from "../src/main/supervisor";
-import { Store } from "../src/main/db";
 import { mkdtempSync, rmSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { Store } from "../src/main/db";
+import { SupervisedService } from "../src/main/supervisor";
 
 const HELLO_SIDECAR = join(import.meta.dir, "fixtures", "hello-sidecar.ts");
 

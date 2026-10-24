@@ -80,8 +80,7 @@ export class RpcClient {
 
   private onData(chunk: Uint8Array) {
     this.buf += new TextDecoder().decode(chunk);
-    let idx;
-    while ((idx = this.buf.indexOf("\n")) !== -1) {
+    for (let idx = this.buf.indexOf("\n"); idx !== -1; idx = this.buf.indexOf("\n")) {
       const line = this.buf.slice(0, idx).trim();
       this.buf = this.buf.slice(idx + 1);
       if (line) this.handleLine(line);
@@ -116,7 +115,7 @@ export class RpcClient {
       this.pending.delete(msg.id as number);
       if (msg.error) p.reject(new Error(`${msg.error.message} (code ${msg.error.code})`));
       else p.resolve(msg.result);
-    } else if (msg.id === null && msg.result?.ok === true) {
+    } else if (msg.id === null && (msg.result as { ok?: boolean } | undefined)?.ok === true) {
       // hello ack (id null) — ready notification usually follows
     }
   }

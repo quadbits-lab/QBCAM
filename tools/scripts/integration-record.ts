@@ -47,10 +47,18 @@ console.log("✔ all sidecars ready");
 
 // pipeline
 await camio.request("capture.open", {
-  deviceId: "fake", width: 1280, height: 720, fps: 30, format: "MJPG", ringIn: RING_IN,
+  deviceId: "fake",
+  width: 1280,
+  height: 720,
+  fps: 30,
+  format: "MJPG",
+  ringIn: RING_IN,
 });
 const start = await vision.request("pipeline.start", {
-  ringIn: RING_IN, ringOut: RING_OUT, preset: "balanced", identityBindings: [],
+  ringIn: RING_IN,
+  ringOut: RING_OUT,
+  preset: "balanced",
+  identityBindings: [],
 });
 console.log(`✔ pipeline up (ep=${start.executionProvider})`);
 await Bun.sleep(1000);
@@ -58,7 +66,13 @@ await Bun.sleep(1000);
 // vcam attach (mock) — §8.2 contract
 const describe = await vcam.request("vcam.describe");
 if (describe.deviceName !== "QBCAM Virtual Camera") fail("TS-03: device name must be honest");
-await vcam.request("vcam.start", { ringOut: RING_OUT, width: 1280, height: 720, fps: 30, format: "NV12" });
+await vcam.request("vcam.start", {
+  ringOut: RING_OUT,
+  width: 1280,
+  height: 720,
+  fps: 30,
+  format: "NV12",
+});
 await Bun.sleep(500);
 const clients = await vcam.request("vcam.describe");
 if (clients.activeClients < 1) fail("vcam mock shows no active clients");
@@ -66,7 +80,11 @@ console.log("✔ vcam mock streaming, clients =", clients.activeClients);
 
 // record 8 seconds
 const rec = await recorder.request("recorder.start", {
-  ringOut: RING_OUT, container: "mp4", codec: "h264", audio: "off", outputDir: TMP_OUT,
+  ringOut: RING_OUT,
+  container: "mp4",
+  codec: "h264",
+  audio: "off",
+  outputDir: TMP_OUT,
 });
 console.log(`✔ recording → ${rec.path}`);
 await Bun.sleep(8000);
@@ -76,8 +94,18 @@ if (stopped.durationMs < 5000) fail("recording too short");
 
 // ffprobe validation
 const probe = await runCapture({
-  argv: ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
-         "stream=width,height,codec_name,duration", "-of", "json", rec.path],
+  argv: [
+    "ffprobe",
+    "-v",
+    "error",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "stream=width,height,codec_name,duration",
+    "-of",
+    "json",
+    rec.path,
+  ],
 });
 const info = JSON.parse(probe.stdout);
 const stream = info.streams?.[0];
@@ -101,7 +129,13 @@ if (!drained) fail("vcam clients did not drain");
 // cleanup
 await vision.request("pipeline.stop");
 await camio.request("capture.close", { deviceId: "fake" });
-vision.close(); camio.close(); recorder.close(); vcam.close();
-visionProc.kill(); camioProc.kill(); recorderProc.kill(); vcamProc.kill();
+vision.close();
+camio.close();
+recorder.close();
+vcam.close();
+visionProc.kill();
+camioProc.kill();
+recorderProc.kill();
+vcamProc.kill();
 console.log("\n✔ integration-record PASSED");
 process.exit(0);

@@ -5,7 +5,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
-import type { Shell, UiRequestContext } from ".";
+import type { PickFilesOptions, Shell, UiRequestContext } from ".";
 
 export class HeadlessShell implements Shell {
   readonly kind = "headless" as const;
@@ -33,6 +33,20 @@ export class HeadlessShell implements Shell {
     this.handler = handler;
   }
 
+  async openExternal(url: string): Promise<boolean> {
+    return runDetached(openerFor(url), [url]);
+  }
+
+  async showItemInFolder(path: string): Promise<boolean> {
+    if (process.platform === "darwin") return runDetached("open", ["-R", path]);
+    return runDetached(openerFor(path), [path]);
+  }
+
+  async pickFiles(_options?: PickFilesOptions): Promise<string[]> {
+    // Browser dev has no native dialog; the UI falls back to a path field.
+    return [];
+  }
+
   async start(): Promise<void> {
     const handler = () => this.handler;
     const sockets = this.sockets;
@@ -47,12 +61,15 @@ export class HeadlessShell implements Shell {
           if (url.searchParams.get("token") !== token) {
             return new Response("forbidden", { status: 403 });
           }
-          if (server.upgrade(req)) return;
+          if (server.upgrade(req, { data: undefined })) return;
           return new Response("upgrade failed", { status: 500 });
         }
         if (url.pathname === "/ui/rpc" && req.method === "POST") {
           if (req.headers.get("x-qbcam-token") !== token) {
-            return Response.json({ error: { code: -32000, message: "bad token" } }, { status: 403 });
+            return Response.json(
+              { error: { code: -32000, message: "bad token" } },
+              { status: 403 },
+            );
           }
           const body = (await req.json()) as { method?: string; params?: unknown };
           if (!body.method) {
@@ -94,10 +111,7 @@ export class HeadlessShell implements Shell {
             if (path.endsWith(".html")) {
               html = await file.text();
               // inject same-origin error trap before any module script (CSP-safe)
-              html = html.replace(
-                "<head>",
-                '<head><script src="/__trap.js"></script>',
-              );
+              html = html.replace("<head>", '<head><script src="/__trap.js"></script>');
               return new Response(html, {
                 headers: { "content-type": "text/html; charset=utf-8" },
               });
@@ -153,5 +167,26 @@ export class HeadlessShell implements Shell {
   async stop(): Promise<void> {
     this.server?.stop(true);
     this.server = null;
+  }
+}
+
+function openerFor(target: string): string {
+  if (target.startsWith("http") || target.startsWith("x-apple.")) {
+    if (process.platform === "darwin") return "open";
+    if (process.platform === "win32") return "cmd";
+    return "xdg-open";
+  }
+  if (process.platform === "darwin") return "open";
+  if (process.platform === "win32") return "explorer";
+  return "xdg-open";
+}
+
+function runDetached(command: string, args: string[]): boolean {
+  try {
+    const actual = command === "cmd" ? ["/c", "start", "", ...args] : args;
+    Bun.spawn([command, ...actual], { stdout: "ignore", stderr: "ignore" });
+    return true;
+  } catch {
+    return false;
   }
 }

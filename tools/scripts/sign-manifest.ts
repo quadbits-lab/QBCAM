@@ -6,7 +6,14 @@
  *   bun run tools/scripts/sign-manifest.ts sign      # → models/manifest.signed.json
  *   bun run tools/scripts/sign-manifest.ts verify    # verify signed manifest
  */
-import { createPrivateKey, createPublicKey, generateKeyPairSync, sign as cryptoSign, verify as cryptoVerify, createHash } from "node:crypto";
+import {
+  createHash,
+  createPrivateKey,
+  createPublicKey,
+  sign as cryptoSign,
+  verify as cryptoVerify,
+  generateKeyPairSync,
+} from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -58,12 +65,7 @@ if (cmd === "gen") {
     models: signed.payload.models,
     builtAt: signed.payload.builtAt,
   });
-  const ok = cryptoVerify(
-    null,
-    Buffer.from(payload),
-    pub,
-    Buffer.from(signed.signature, "base64"),
-  );
+  const ok = cryptoVerify(null, Buffer.from(payload), pub, Buffer.from(signed.signature, "base64"));
   if (!ok) {
     console.error("MANIFEST SIGNATURE INVALID");
     process.exit(1);

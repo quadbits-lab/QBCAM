@@ -8,8 +8,8 @@
  * Exit 0 on success: out-ring seq advances, pipeline.stats reports fps > 0.
  */
 import { randomBytes } from "node:crypto";
-import { connect } from "bun";
 import { join } from "node:path";
+import { connect } from "bun";
 import { runCapture, runLong } from "./proc.ts";
 
 const ROOT = join(import.meta.dir, "..", "..");
@@ -62,7 +62,10 @@ async function rpcClient(sockPath: string, token: string, name: string) {
       const id = pendingId++;
       const p = new Promise<any>((resolve) => pending.set(id, resolve));
       sock.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
-      const resp = await Promise.race([p, Bun.sleep(10_000).then(() => ({ error: { message: "timeout" } }))]);
+      const resp = await Promise.race([
+        p,
+        Bun.sleep(10_000).then(() => ({ error: { message: "timeout" } })),
+      ]);
       if (resp.error) throw new Error(`${name}.${method}: ${resp.error.message}`);
       return resp.result as T;
     },

@@ -15,6 +15,7 @@
     "contracts:gen": "bun run --cwd packages/contracts gen",
     "dev": "bun run --cwd apps/desktop dev",
     "dev:headless": "bun run --cwd apps/desktop dev:headless",
+    "dev:desktop": "bun run --cwd apps/desktop desktop",
     "build": "bun run --cwd apps/desktop build",
     "test": "bun test",
     "test:py": "uv run --project services/vision pytest -q && uv run --project services/media pytest -q",
@@ -29,7 +30,8 @@
     "drift:guard": "bun run contracts:gen && git diff --exit-code -- packages/contracts/dist || (echo 'CONTRACT DRIFT: run bun run contracts:gen and commit' && exit 1)"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
-    "typescript": "^5.7.0"
+    "@biomejs/biome": "^2.6.3",
+    "bun-types": "^1.4.4",
+    "typescript": "^5.9.3"
   }
 }

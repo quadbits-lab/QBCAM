@@ -2,11 +2,13 @@
  * Static services registry — the ONLY place sidecar executables/args are
  * defined. Nothing user-supplied ever reaches here.
  */
-import { join } from "node:path";
+
 import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "./paths";
 import type { ServiceLaunch } from "./supervisor";
 
-const ROOT = join(import.meta.dir, "..", "..", "..", "..");
+const ROOT = repoRoot();
 
 /** Workspace .venv python (uv workspace root env). */
 function venvPython(): string {

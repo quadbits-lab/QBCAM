@@ -23,12 +23,14 @@ function App() {
           rpc<{ identities: [] }>("listIdentities"),
           rpc<{ items: [] }>("listLibrary"),
           rpc<{ models: [] }>("listModels"),
-          rpc<{ states: Record<string, string> }>("getServiceStates"),
+          rpc<{ states: Array<{ name: string; state: string }> }>("getServiceStates"),
         ]);
-        s.setIdentities(identities.identities);
-        s.setLibrary(library.items);
-        s.setModels(models.models);
-        s.setServiceStates(Object.fromEntries(states.states.map((x: any) => [x.name, x.state])));
+        s.setIdentities(identities.identities ?? []);
+        s.setLibrary(library.items ?? []);
+        s.setModels(models.models ?? []);
+        s.setServiceStates(
+          Object.fromEntries((states.states ?? []).map((x) => [x.name, x.state])),
+        );
         const seen = localStorage.getItem("qbcam.wizardDone");
         if (!seen) s.setToast("wizard");
       } catch (err) {
@@ -39,7 +41,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const off = connectEvents({
+    let off: (() => void) | null = null;
+    connectEvents({
       "pipeline.stats": (p) =>
         s.setStats({
           fps: p.fps,
@@ -57,8 +60,10 @@ function App() {
       "models.progress": (p) =>
         useStudio.getState().setToast(`${p.modelId}: ${p.stage} ${Math.round(p.percent)}%`),
       "vcam.state": (p) => useStudio.getState().setVcamOn(p.on),
+    }).then((unsub) => {
+      off = unsub;
     });
-    return off;
+    return () => off?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

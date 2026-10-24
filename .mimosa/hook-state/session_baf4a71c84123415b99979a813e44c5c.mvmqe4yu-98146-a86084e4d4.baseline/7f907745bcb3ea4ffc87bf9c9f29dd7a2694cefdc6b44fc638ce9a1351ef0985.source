@@ -20,7 +20,10 @@ export async function rpc<T = unknown>(method: string, params: unknown = {}): Pr
 }
 
 /** Subscribe to core events over the UI WebSocket. */
-export function connectEvents(handlers: Record<string, (params: any) => void>): () => void {
+export async function connectEvents(
+  handlers: Record<string, (params: any) => void>,
+): Promise<() => void> {
+  if (!token) await initApi();
   const ws = new WebSocket(`ws://${location.host}/ws?token=${token}`);
   ws.onmessage = (ev) => {
     if (typeof ev.data !== "string") return;

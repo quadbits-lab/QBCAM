@@ -3,6 +3,7 @@ temporal, with fail-safe (FR-109) and adaptive governor (§7.4)."""
 
 from __future__ import annotations
 
+import logging
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -15,6 +16,8 @@ from .blend import BlendParams, paste_back
 from .detect import Detection, YuNetDetector
 from .swap import SwapBackend, StubSwapper, SwapResult
 from .track import IoUTracker
+
+_log = logging.getLogger(__name__)
 
 
 class FailSafe(str, Enum):
@@ -77,12 +80,14 @@ class Pipeline:
         self.bypassed = False
         self._last_frame: np.ndarray | None = None
         self._frame_times: deque[float] = deque(maxlen=120)
+        self._arrivals: deque[float] = deque(maxlen=120)
         self._dropped = 0
         self._faces: list[dict] = []
         self._on_event = on_event or (lambda name, payload: None)
         self._last_synth_badge = True
         self._degraded = False
         self._slow_since: float | None = None
+        self._last_degraded_event = 0.0
 
     # ---- configuration (hot-swappable per spec §7.6) ----
 
@@ -138,16 +143,27 @@ class Pipeline:
 
     def process(self, frame_bgra: np.ndarray, frame_index: int) -> tuple[np.ndarray, FrameStats]:
         start = time.perf_counter()
+        self._arrivals.append(start)
         if self.bypassed:
             stats = self._stats(start, 0, degraded=False)
             return frame_bgra, stats
 
         try:
-            out = self._process_inner(frame_bgra, frame_index)
-        except Exception:
+            out = self._process_inner(frame_bgra, frame_index, start)
+        except Exception as exc:
             # fail-safe per FR-109 / ADR-009: never leak a half-processed frame
+            _log.exception("pipeline exception; fail-safe engaged")
             self._degraded = True
-            self._on_event("pipeline.degraded", {"reason": "pipeline exception; fail-safe engaged"})
+            now = time.perf_counter()
+            if now - self._last_degraded_event >= 5.0:
+                self._last_degraded_event = now
+                self._on_event(
+                    "pipeline.degraded",
+                    {
+                        "reason": "pipeline exception; fail-safe engaged",
+                        "error": f"{type(exc).__name__}: {exc}",
+                    },
+                )
             out = self._fail_safe_frame(frame_bgra)
         stats = self._stats(start, self._dropped, degraded=self._degraded)
         return out, stats
@@ -159,7 +175,7 @@ class Pipeline:
             return self._last_frame
         return draw_slate(frame_bgra)
 
-    def _process_inner(self, frame_bgra: np.ndarray, frame_index: int) -> np.ndarray:
+    def _process_inner(self, frame_bgra: np.ndarray, frame_index: int, start: float) -> np.ndarray:
         bgr = cv2.cvtColor(frame_bgra, cv2.COLOR_BGRA2BGR)
         do_detect = (
             self.detector is not None
@@ -240,6 +256,7 @@ class Pipeline:
             if self._degraded and now - (self._slow_since or now) >= 0:
                 if p95 < budget_ms * 0.7:
                     self._degraded = False
+                    self._on_event("pipeline.recovered", {})
                     self.params.det_interval = max(
                         {"fast": 5, "balanced": 3, "quality": 1}[self.params.preset],
                         self.params.det_interval - 2,
@@ -249,7 +266,13 @@ class Pipeline:
         elapsed = (time.perf_counter() - start) * 1000
         self._frame_times.append(elapsed)
         recent = list(self._frame_times)
-        fps = 1000.0 / (sum(recent) / len(recent)) if recent else 0.0
+        # FPS is the arrival rate, not the inverse of processing time (which
+        # can exceed the capture rate on fast machines and mislead operators).
+        arrivals = list(self._arrivals)
+        if len(arrivals) > 1 and arrivals[-1] > arrivals[0]:
+            fps = (len(arrivals) - 1) / (arrivals[-1] - arrivals[0])
+        else:
+            fps = 1000.0 / elapsed if elapsed > 0 else 0.0
         p95 = sorted(recent)[int(len(recent) * 0.95)] if len(recent) > 10 else elapsed
         return FrameStats(
             fps=fps,

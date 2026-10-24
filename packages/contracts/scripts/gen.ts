@@ -6,8 +6,8 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { Methods, Events } from "../src/index.ts";
-import { SettingsSchema, DEFAULT_SETTINGS, UiRequests, UiEvents } from "../src/settings.ts";
+import { Events, Methods } from "../src/index.ts";
+import { DEFAULT_SETTINGS, SettingsSchema, UiEvents, UiRequests } from "../src/settings.ts";
 
 const dist = join(import.meta.dir, "..", "dist");
 mkdirSync(join(dist, "json"), { recursive: true });
@@ -37,7 +37,7 @@ const all = {
   $schema: "http://json-schema.org/draft-07/schema#",
   title: "QBCAM Contracts",
   definitions: {
-    ...(SettingsSchema as { definitions?: Record<string, unknown> }).definitions ?? {},
+    ...((SettingsSchema as { definitions?: Record<string, unknown> }).definitions ?? {}),
     Settings: { ...SettingsSchema, $id: "Settings", definitions: undefined },
     Methods: { type: "object", additionalProperties: false },
     MethodTable: methodTable as unknown,
@@ -67,35 +67,35 @@ writeFileSync(
 );
 
 // Pydantic v2 module from the settings JSON Schema (drift-guarded like everything else)
-const codegen = Bun.spawnSync([
-  "uvx",
-  "--from",
-  "datamodel-code-generator",
-  "datamodel-codegen",
-  "--input",
-  "dist/json/settings.json",
-  "--input-file-type",
-  "jsonschema",
-  "--output",
-  "dist/py/qbcam_contracts.py",
-  "--class-name",
-  "Settings",
-  "--output-model-type",
-  "pydantic_v2.BaseModel",
-  "--target-python-version",
-  "3.12",
-  "--formatters",
-  "black",
-], { cwd: join(import.meta.dir, ".."), stdout: "pipe", stderr: "inherit" });
+const codegen = Bun.spawnSync(
+  [
+    "uvx",
+    "--from",
+    "datamodel-code-generator",
+    "datamodel-codegen",
+    "--input",
+    "dist/json/settings.json",
+    "--input-file-type",
+    "jsonschema",
+    "--output",
+    "dist/py/qbcam_contracts.py",
+    "--class-name",
+    "Settings",
+    "--output-model-type",
+    "pydantic_v2.BaseModel",
+    "--target-python-version",
+    "3.12",
+    "--formatters",
+    "black",
+  ],
+  { cwd: join(import.meta.dir, ".."), stdout: "pipe", stderr: "inherit" },
+);
 if (codegen.exitCode !== 0) {
   console.error("pydantic codegen failed");
   process.exit(1);
 }
 
-writeFileSync(
-  join(dist, "defaults.json"),
-  `${JSON.stringify(DEFAULT_SETTINGS, null, 2)}\n`,
-);
+writeFileSync(join(dist, "defaults.json"), `${JSON.stringify(DEFAULT_SETTINGS, null, 2)}\n`);
 
 console.log("contracts:gen OK — emitted JSON schemas + defaults");
 console.log(`  methods: ${Object.keys(methodTable).length}`);

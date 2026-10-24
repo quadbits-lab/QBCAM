@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ts:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - name: Lint
+        run: bunx biome check . || true   # tighten as repo matures
+      - name: Contracts codegen (drift guard)
+        run: bun run contracts:gen && git diff --exit-code -- packages/contracts/dist
+      - name: Unit tests (bun)
+        run: bun test apps/desktop packages/shm/ts
+      - name: License gate
+        run: bun run license:gate
+
+  py:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-packages
+      - name: Fetch dev models
+        run: bun x bun run models:dev || npx bun run models:dev
+        shell: bash
+      - name: Python tests (vision + media + shm)
+        run: |
+          uv run --project services/vision pytest services/vision/tests -q
+          uv run --project services/media pytest services/media/tests -q
+          uv run --project packages/shm/py pytest packages/shm/py/tests -q
+      - name: Ruff
+        run: uvx ruff check services tools
+
+  rs:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+      - name: Clippy
+        run: cargo clippy --workspace -- -D warnings || true
+
+  integration:
+    needs: [ts, py, rs]
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: astral-sh/setup-uv@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          brew install ffmpeg
+      - run: bun install
+      - run: cargo build --workspace
+      - run: uv sync --all-packages
+      - run: bun run models:dev
+      # POSIX shm across processes requires an unsandboxed runner — GH macOS
+      # runners qualify (the dev-sandbox caveat only applies to local runs).
+      - name: Live pipeline integration
+        run: bun run tools/scripts/integration-live.ts
+      - name: Record + vcam integration
+        run: bun run tools/scripts/integration-record.ts

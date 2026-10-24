@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "mimosa-finding-ledger-batch/v1",
+  "batchId": "stop-20261024T181149209Z-88722-3ba8163f599b",
+  "runId": "20261024T181149209Z-88722-3ba8163f599b",
+  "runStatus": "completed",
+  "coverage": {
+    "status": "complete",
+    "reasons": []
+  },
+  "source": {
+    "component": "zcode-hook",
+    "operationId": "Stop"
+  },
+  "revision": "840c3b250d440e9f0e7648687c1836be2ee5daef",
+  "diffHash": "4895c8f9f00c7429003a7d0403148b786fc3a1b27f085f7200cc7066c2286882",
+  "rulesVersion": "unavailable",
+  "sessionHash": "08c9b75fa0a5197553bf29fc23571d344986355d04105e4071247935cebf05af",
+  "reportRef": ".mimosa/reports/task-review-session_baf4a71c84123415b99979a813e44c5c-20261024T181149209Z-88722-3ba8163f599b.json",
+  "events": [],
+  "observedFindingIds": [],
+  "verifiedFiles": [
+    {
+      "file": "apps/desktop/src/main/rpc/hub.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "apps/desktop/src/main/shell/headless.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "apps/desktop/src/views/studio/src/main.tsx",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "apps/desktop/src/views/studio/src/api.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "edge/manifest-worker/src/index.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "edge/telemetry-worker/src/index.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    },
+    {
+      "file": "tools/scripts/sign-manifest.ts",
+      "direct": "complete",
+      "projectContext": "partial"
+    }
+  ],
+  "recordedAt": "2026-10-24T18:11:49.382Z"
+}

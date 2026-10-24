@@ -9,7 +9,7 @@ import { spawn as nodeSpawn } from "node:child_process";
 
 export interface SidecarProcess {
   exited: Promise<number | null>;
-  kill(signal?: string): void;
+  kill(signal?: string | number): void;
   pid: number | undefined;
 }
 
@@ -28,7 +28,7 @@ export function spawnBunSidecar(options: {
   child.on("exit", (code) => options.onExit(code));
   return {
     exited: new Promise((resolve) => child.once("exit", (code) => resolve(code))),
-    kill: (signal) => child.kill(signal ?? "SIGTERM"),
+    kill: (signal) => child.kill((signal ?? "SIGTERM") as NodeJS.Signals),
     pid: child.pid,
   };
 }
@@ -48,7 +48,7 @@ export function spawnInterpSidecar(options: {
   child.on("exit", (code) => options.onExit(code));
   return {
     exited: new Promise((resolve) => child.once("exit", (code) => resolve(code))),
-    kill: (signal) => child.kill(signal ?? "SIGTERM"),
+    kill: (signal) => child.kill((signal ?? "SIGTERM") as NodeJS.Signals),
     pid: child.pid,
   };
 }

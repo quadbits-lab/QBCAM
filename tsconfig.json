@@ -15,5 +15,17 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "types": ["bun-types"]
-  }
+  },
+  "exclude": [
+    "node_modules",
+    ".venv",
+    "target",
+    ".kilo",
+    "apps/desktop/.hutch",
+    "apps/desktop/build",
+    "apps/desktop/electrobun.config.ts",
+    "apps/desktop/hutch.config.ts",
+    "apps/desktop/src/main/shell/electrobun.ts",
+    "apps/desktop/src/main/electrobun-entry.ts"
+  ]
 }

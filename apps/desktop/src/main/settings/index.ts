@@ -27,7 +27,9 @@ export function saveSettings(patch: Record<string, unknown>): Settings {
 }
 
 function deepMerge<T>(base: T, patch: unknown): T {
-  if (patch === null || patch === undefined) return base;
+  if (patch === undefined) return base;
+  // An explicit null clears a field (e.g. resetting onboarding.completedAt).
+  if (patch === null) return null as T;
   if (typeof base !== "object" || base === null || Array.isArray(base)) return patch as T;
   if (typeof patch !== "object" || patch === null || Array.isArray(patch)) return patch as T;
   const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };

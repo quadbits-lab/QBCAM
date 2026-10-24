@@ -1,38 +1,207 @@
+@import "@fontsource-variable/space-grotesk";
 @import "tailwindcss";
 
-/* QBCAM design tokens (spec §12.1) */
-:root {
-  --bg-0: #0b0d12;
-  --bg-1: #12151c;
-  --bg-2: #1a1f2b;
-  --border: #262c3a;
-  --text-0: #edeff5;
-  --text-1: #9aa3b5;
-  --accent: #7c5cff;
-  --accent-2: #22d3ee;
-  --danger: #ff5c7a;
-  --ok: #34d399;
+/* ---------------------------------------------------------------------------
+   QBCAM — broadcast-hardware console.
+   Graphite surfaces, signal-lime accent, mono instrumentation. Dark-first;
+   the light theme is derived from the same semantic scale.
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/plex-mono-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/plex-mono-500-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+
+:root,
+html.dark {
+  --background: #0a0b0d;
+  --surface: #101216;
+  --surface-2: #171a1f;
+  --surface-3: #1e2228;
+  --line: #2a2f37;
+  --line-soft: #1c2027;
+  --text: #f4f6f8;
+  --muted: #99a1ac;
+  --faint: #6b737e;
+  --accent: #c8f751;
+  --accent-ink: #0b0d0a;
+  --info: #6bd5ff;
+  --ok: #4ade80;
+  --warn: #ffb020;
+  --rec: #ff4d4f;
+  --grid: rgba(255, 255, 255, 0.035);
+  color-scheme: dark;
+}
+
+html.light {
+  --background: #f2f3f0;
+  --surface: #ffffff;
+  --surface-2: #f4f5f2;
+  --surface-3: #e9ebe6;
+  --line: #cfd3cc;
+  --line-soft: #e0e3dd;
+  --text: #101310;
+  --muted: #5d645d;
+  --faint: #8a918a;
+  --accent: #59710a;
+  --accent-ink: #f7ffe8;
+  --info: #0b7fa8;
+  --ok: #127c43;
+  --warn: #9a5b00;
+  --rec: #c92f31;
+  --grid: rgba(0, 0, 0, 0.04);
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--line);
 }
 
 body {
-  background: var(--bg-0);
-  color: var(--text-0);
-  font-family: Inter, system-ui, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  font-family: "Space Grotesk Variable", "DM Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .mono {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
-/* visible focus ring for keyboard nav (NFR-07) */
+.label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border: 2px solid var(--background);
+  border-radius: 999px;
+}
+
+button,
+input,
+select,
+textarea {
+  box-shadow: none;
+}
+
+/* hairline grid, used behind onboarding and empty states */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* instrument panel with corner ticks */
+.panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+}
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-color: var(--line);
+  border-style: solid;
+  pointer-events: none;
+}
+.panel::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+}
+
+.scanline {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@keyframes qb-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse {
+  animation: qb-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes qb-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.sweep {
+  animation: qb-sweep 2.4s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

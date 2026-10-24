@@ -1,8 +1,24 @@
 /** App settings — reference shape from spec Appendix B. */
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
+
+const PermissionState = Type.Union(
+  [Type.Literal("granted"), Type.Literal("denied"), Type.Literal("unknown")],
+  { default: "unknown" },
+);
 
 export const SettingsSchema = Type.Object({
   schema: Type.Integer(),
+  onboarding: Type.Object({
+    schema: Type.Integer({ default: 1 }),
+    completedAt: Type.Union([Type.Number(), Type.Null()], { default: null }),
+    cameraMode: Type.Union([Type.Literal("device"), Type.Literal("synthetic")], {
+      default: "device",
+    }),
+    cameraPermission: PermissionState,
+    microphonePermission: PermissionState,
+    microphoneDeviceId: Type.Union([Type.String(), Type.Null()], { default: null }),
+    detectorReadyAt: Type.Union([Type.Number(), Type.Null()], { default: null }),
+  }),
   camera: Type.Object({
     deviceId: Type.String({ default: "auto" }),
     width: Type.Integer({ default: 1280 }),
@@ -11,25 +27,25 @@ export const SettingsSchema = Type.Object({
     format: Type.String({ default: "MJPG" }),
   }),
   pipeline: Type.Object({
-    preset: Type.Union([
-      Type.Literal("fast"),
-      Type.Literal("balanced"),
-      Type.Literal("quality"),
-    ], { default: "balanced" }),
+    preset: Type.Union([Type.Literal("fast"), Type.Literal("balanced"), Type.Literal("quality")], {
+      default: "balanced",
+    }),
     executionProvider: Type.String({ default: "auto" }),
-    failSafe: Type.Union([
-      Type.Literal("slate"),
-      Type.Literal("freeze"),
-      Type.Literal("passthrough"),
-    ], { default: "slate" }),
+    failSafe: Type.Union(
+      [Type.Literal("slate"), Type.Literal("freeze"), Type.Literal("passthrough")],
+      { default: "slate" },
+    ),
     adaptiveQuality: Type.Boolean({ default: true }),
     multiFace: Type.Object({
-      mode: Type.Union([
-        Type.Literal("largest"),
-        Type.Literal("index"),
-        Type.Literal("all"),
-        Type.Literal("tracked"),
-      ], { default: "largest" }),
+      mode: Type.Union(
+        [
+          Type.Literal("largest"),
+          Type.Literal("index"),
+          Type.Literal("all"),
+          Type.Literal("tracked"),
+        ],
+        { default: "largest" },
+      ),
       max: Type.Integer({ minimum: 1, maximum: 4, default: 2 }),
     }),
   }),
@@ -54,22 +70,16 @@ export const SettingsSchema = Type.Object({
     mirror: Type.Boolean({ default: false }),
   }),
   record: Type.Object({
-    container: Type.Union([
-      Type.Literal("mp4"),
-      Type.Literal("mkv"),
-      Type.Literal("webm"),
-    ], { default: "mp4" }),
-    codec: Type.Union([
-      Type.Literal("h264"),
-      Type.Literal("hevc"),
-      Type.Literal("vp9"),
-    ], { default: "h264" }),
+    container: Type.Union([Type.Literal("mp4"), Type.Literal("mkv"), Type.Literal("webm")], {
+      default: "mp4",
+    }),
+    codec: Type.Union([Type.Literal("h264"), Type.Literal("hevc"), Type.Literal("vp9")], {
+      default: "h264",
+    }),
     quality: Type.String({ default: "cq20" }),
-    audio: Type.Union([
-      Type.Literal("aac"),
-      Type.Literal("opus"),
-      Type.Literal("off"),
-    ], { default: "aac" }),
+    audio: Type.Union([Type.Literal("aac"), Type.Literal("opus"), Type.Literal("off")], {
+      default: "aac",
+    }),
     dualTrack: Type.Boolean({ default: false }),
     dir: Type.String({ default: "~/QBCAM/Recordings" }),
   }),
@@ -95,6 +105,15 @@ export type Settings = Static<typeof SettingsSchema>;
 
 export const DEFAULT_SETTINGS: Settings = {
   schema: 1,
+  onboarding: {
+    schema: 1,
+    completedAt: null,
+    cameraMode: "device",
+    cameraPermission: "unknown",
+    microphonePermission: "unknown",
+    microphoneDeviceId: null,
+    detectorReadyAt: null,
+  },
   camera: { deviceId: "auto", width: 1280, height: 720, fps: 30, format: "MJPG" },
   pipeline: {
     preset: "balanced",
@@ -161,14 +180,62 @@ export const UiRequests = {
     path: Type.String(),
     licenseAccepted: Type.Boolean(),
   }),
+  getSetupStatus: Type.Object({}),
+  cameraSnapshot: Type.Object({
+    deviceId: Type.String(),
+    width: Type.Optional(Type.Integer()),
+    height: Type.Optional(Type.Integer()),
+    fps: Type.Optional(Type.Number()),
+  }),
+  probeMicrophone: Type.Object({
+    deviceId: Type.String(),
+    ms: Type.Optional(Type.Integer()),
+  }),
+  completeOnboarding: Type.Object({
+    cameraMode: Type.Union([Type.Literal("device"), Type.Literal("synthetic")]),
+    cameraDeviceId: Type.Union([Type.String(), Type.Null()]),
+    microphoneDeviceId: Type.Union([Type.String(), Type.Null()]),
+    cameraPermission: Type.Optional(PermissionState),
+    microphonePermission: Type.Optional(PermissionState),
+  }),
+  resetOnboarding: Type.Object({}),
+  openSystemSettings: Type.Object({
+    pane: Type.Union([Type.Literal("camera"), Type.Literal("microphone")]),
+  }),
+  pickImageFiles: Type.Object({}),
+  pickModelFile: Type.Object({}),
+  revealInFolder: Type.Object({ path: Type.String() }),
   getServiceStates: Type.Object({}),
 } as const;
 
 export const UiEvents = {
-  "pipeline.stats": Type.Object({ fps: Type.Number(), frameMs: Type.Number(), faces: Type.Integer(), executionProvider: Type.String(), bypassed: Type.Boolean() }),
-  "pipeline.faces": Type.Array(Type.Object({ trackId: Type.Integer(), x: Type.Number(), y: Type.Number(), w: Type.Number(), h: Type.Number() })),
+  "pipeline.stats": Type.Object({
+    fps: Type.Number(),
+    frameMs: Type.Number(),
+    faces: Type.Integer(),
+    executionProvider: Type.String(),
+    bypassed: Type.Boolean(),
+  }),
+  "pipeline.faces": Type.Array(
+    Type.Object({
+      trackId: Type.Integer(),
+      x: Type.Number(),
+      y: Type.Number(),
+      w: Type.Number(),
+      h: Type.Number(),
+    }),
+  ),
+  "pipeline.degraded": Type.Object({
+    reason: Type.String(),
+    error: Type.Optional(Type.String()),
+  }),
+  "pipeline.recovered": Type.Object({}),
   "recorder.progress": Type.Object({ seconds: Type.Number(), bytes: Type.Integer() }),
   "service.state": Type.Object({ service: Type.String(), state: Type.String() }),
-  "models.progress": Type.Object({ modelId: Type.String(), stage: Type.String(), percent: Type.Number() }),
+  "models.progress": Type.Object({
+    modelId: Type.String(),
+    stage: Type.String(),
+    percent: Type.Number(),
+  }),
   "vcam.state": Type.Object({ on: Type.Boolean(), activeClients: Type.Integer() }),
 } as const;

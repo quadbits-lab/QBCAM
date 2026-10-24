@@ -25,7 +25,9 @@ for (const model of registry.models) {
     continue;
   }
   if (!model.license.commercialUse) {
-    console.error(`✘ ${model.id}: license ${model.license.spdx} is not commercial-use — cannot bundle`);
+    console.error(
+      `✘ ${model.id}: license ${model.license.spdx} is not commercial-use — cannot bundle`,
+    );
     failed = true;
     continue;
   }

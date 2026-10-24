@@ -1,0 +1,272 @@
+{
+  "schema_version": "mimosa-task-review/v2",
+  "run_id": "20261024T181149209Z-88722-3ba8163f599b",
+  "run_status": "completed",
+  "errors": [],
+  "coverage": {
+    "schema_version": "mimosa-hook-coverage/v1",
+    "status": "complete",
+    "scope": "hook_observed_diff",
+    "baseline": {
+      "complete": true,
+      "captured_files": 84,
+      "candidate_limit": 5000,
+      "truncated": false,
+      "enumeration_error_count": 0,
+      "snapshot_error_count": 0,
+      "compensated_target_count": 10
+    },
+    "change_tracking": {
+      "touched_observed": 10,
+      "touched_retained": 10,
+      "truncated": false,
+      "bash_mutation": true,
+      "bash_discovered": 10,
+      "bash_discovery_limit": 80,
+      "bash_discovery_truncated": false
+    },
+    "candidates": {
+      "eligible_files": 10,
+      "selected_files": 10,
+      "limit": 20,
+      "truncated": false
+    },
+    "scanning": {
+      "required_files": 7,
+      "scanned_files": 7,
+      "skipped_files": 0,
+      "failed_files": 0,
+      "project_checks_required": 2,
+      "project_checks_completed": 2
+    },
+    "notification": {
+      "eligible_findings": 0,
+      "detailed_findings": 0,
+      "detail_limit": 3,
+      "truncated": false
+    },
+    "reason_counts": {},
+    "reasons": [],
+    "reasons_truncated": false
+  },
+  "generated_at": "2026-10-24T18:11:49.209Z",
+  "session_id": "session_baf4a71c84123415b99979a813e44c5c",
+  "target": ".",
+  "revision": "840c3b250d440e9f0e7648687c1836be2ee5daef",
+  "rules_version": "unavailable",
+  "diff_hash": "4895c8f9f00c7429003a7d0403148b786fc3a1b27f085f7200cc7066c2286882",
+  "diff": {
+    "algorithm": "sha256",
+    "changed_file_count": 10,
+    "changed_files": [
+      {
+        "file": ".github/workflows/ci.yml",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 73
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "ef7b413996bd8a16e9558fe0f1703e549a4c16d822ee963ad14c97948c91f781"
+      },
+      {
+        "file": "apps/desktop/src/main/rpc/hub.ts",
+        "ranges": [
+          {
+            "start": 70,
+            "end": 70
+          },
+          {
+            "start": 77,
+            "end": 89
+          },
+          {
+            "start": 292,
+            "end": 310
+          },
+          {
+            "start": 312,
+            "end": 312
+          },
+          {
+            "start": 329,
+            "end": 329
+          },
+          {
+            "start": 331,
+            "end": 331
+          },
+          {
+            "start": 339,
+            "end": 347
+          }
+        ],
+        "before_hash": "29645599745299c421175df91ca34f87f75b60456412331ff60b6fe1d6e5e282",
+        "after_hash": "12918dcf78ff3568c0f10cb8d75de1d985fc8f72d17d72f63a11b1ab2a059b13"
+      },
+      {
+        "file": "apps/desktop/src/main/shell/headless.ts",
+        "ranges": [
+          {
+            "start": 82,
+            "end": 82
+          },
+          {
+            "start": 84,
+            "end": 89
+          },
+          {
+            "start": 92,
+            "end": 118
+          }
+        ],
+        "before_hash": "71a1a8d0f4bca1f84c67ea03b71d7d728ed55e28caf5ccb60dabd198c24140f9",
+        "after_hash": "19d649d187d7b5b346958268be38d86570628cc4c0cf8e6a367c13d8b881a81c"
+      },
+      {
+        "file": "apps/desktop/src/views/studio/src/api.ts",
+        "ranges": [
+          {
+            "start": 23,
+            "end": 26
+          }
+        ],
+        "before_hash": "917b1d3b49b9c046899f21241ca82d085304ff955b3a88096c9fb98911a4f4fb",
+        "after_hash": "404a2d8b19544c30f43902a0ab6b3aaa82a2cad7999f18efe91ce582f40c54dc"
+      },
+      {
+        "file": "apps/desktop/src/views/studio/src/main.tsx",
+        "ranges": [
+          {
+            "start": 26,
+            "end": 26
+          },
+          {
+            "start": 28,
+            "end": 33
+          },
+          {
+            "start": 44,
+            "end": 45
+          },
+          {
+            "start": 63,
+            "end": 64
+          },
+          {
+            "start": 66,
+            "end": 66
+          }
+        ],
+        "before_hash": "cffcbc66c4d9ac2112bca775459d03a68c0f14392ceaec58dc6c7dffe71398d4",
+        "after_hash": "339d2830724a9816d3eeade3e869a95c46ad7ecba80617f1e3a4eaa2fb409b0f"
+      },
+      {
+        "file": "edge/manifest-worker/package.json",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 12
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "f107f96927d6623e04fb556b1c16d2236f4a85f5caa7a2c78e8eec9f303ef38c"
+      },
+      {
+        "file": "edge/manifest-worker/src/index.ts",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 54
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "93742ed294c5b20fd28efb47ef24978bab321430de50fb2f1a0c8fa9276fac09"
+      },
+      {
+        "file": "edge/telemetry-worker/package.json",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 10
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "777e7a6f1c9eac097f90a985f4c14cbc3e8238d0150dc1b971123c1048f36e21"
+      },
+      {
+        "file": "edge/telemetry-worker/src/index.ts",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 84
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "fe0875e26785b8bc9fed84affdad572e41800cb594abf5f171abaf3dd9591998"
+      },
+      {
+        "file": "tools/scripts/sign-manifest.ts",
+        "ranges": [
+          {
+            "start": 1,
+            "end": 72
+          }
+        ],
+        "before_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_hash": "8f7329cbaece9906938c22fc196456092098956e848a5078cbda8b312437cba9"
+      }
+    ]
+  },
+  "timing": {
+    "started_at": "2026-10-24T18:11:48.381Z",
+    "completed_at": "2026-10-24T18:11:49.209Z",
+    "duration_ms": 828,
+    "measurement": "hook_wall_clock"
+  },
+  "tokens": {
+    "input": 0,
+    "output": 0,
+    "total": 0,
+    "model_calls": 0,
+    "measurement": "known-zero"
+  },
+  "telemetry": {
+    "schemaVersion": "mimosa-gate-telemetry/v1",
+    "profile": "gate",
+    "operation": "Stop",
+    "outcome": "complete",
+    "latencyMs": 828,
+    "peakMemoryBytes": 214466560,
+    "memoryMeasurement": "max-observed-process-rss",
+    "scannedFiles": 7,
+    "cache": {
+      "hits": 0,
+      "misses": 0,
+      "measurement": "not-applicable"
+    },
+    "denyCount": 0,
+    "tokens": {
+      "input": 0,
+      "output": 0,
+      "total": 0,
+      "modelCalls": 0,
+      "measurement": "known-zero"
+    }
+  },
+  "finding_count": 0,
+  "rewake_finding_count": 0,
+  "evidence_boundary": {
+    "scan": "candidate",
+    "static_fix_verification": "observed_static_only",
+    "runtime_verification": "not_performed"
+  },
+  "finding_events": [],
+  "findings": [],
+  "artifacts": {
+    "immutable_report": ".mimosa/reports/task-review-session_baf4a71c84123415b99979a813e44c5c-20261024T181149209Z-88722-3ba8163f599b.json",
+    "latest_report": ".mimosa/reports/task-review-session_baf4a71c84123415b99979a813e44c5c.json",
+    "history_summary": ".mimosa/history/run-20261024T181149209Z-88722-3ba8163f599b.json"
+  }
+}

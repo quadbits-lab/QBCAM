@@ -18,6 +18,12 @@ models/install/
 *.onnx
 !tools/fixtures/**/*.onnx
 
+# Electrobun / Hutch (generated devkit + build output)
+.hutch/
+.cottontail-tmp/
+build/
+artifacts/
+
 # Local data
 qbcam.db*
 *.log

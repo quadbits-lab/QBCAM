@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "mimosa-hook-status/v1",
+  "recordedAt": "2026-10-24T18:31:54.083Z",
+  "sessionId": "session_baf4a71c84123415b99979a813e44c5c",
+  "event": "PostToolUse",
+  "toolName": "Write",
+  "file": "/Users/quadbits/RD/QBCAM/apps/desktop/src/views/studio/src/main.tsx",
+  "outcome": "inconclusive",
+  "coverage": "partial",
+  "findingCount": 0,
+  "durationMs": 4,
+  "hostState": "hook_complete",
+  "reportHint": ".mimosa/reports/"
+}

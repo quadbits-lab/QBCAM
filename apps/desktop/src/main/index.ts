@@ -1,26 +1,28 @@
 /**
  * qb-core — Bun main process entry (spec §6 qb-core).
  * Wires: DB, settings, supervisor + sidecars, shell adapter, RPC hub.
- * Headless shell by default; Electrobun shell attaches in P8 via SHELL=electrobun.
+ * Defaults to the headless shell; the Electrobun entrypoint
+ * (`electrobun-entry.ts`) injects the native-window shell instead.
  */
-import { Hub } from "./rpc/hub";
-import { Store } from "./db";
-import { SupervisedService } from "./supervisor";
-import { sidecarServices } from "./services-registry";
-import { HeadlessShell } from "./shell/headless";
-import { runDir, logsDir, defaultOutputDirs, dataDir } from "./paths";
+
 import { mkdirSync } from "node:fs";
+import { Store } from "./db";
+import { dataDir, defaultOutputDirs, logsDir, runDir } from "./paths";
+import { Hub } from "./rpc/hub";
+import { sidecarServices } from "./services-registry";
+import type { Shell } from "./shell";
+import { HeadlessShell } from "./shell/headless";
+import { SupervisedService } from "./supervisor";
 
 const VERSION = "0.1.0";
 
-async function main() {
+export async function main(shell: Shell = new HeadlessShell()) {
   mkdirSync(logsDir(), { recursive: true });
   mkdirSync(runDir(), { recursive: true });
   const dirs = defaultOutputDirs();
   for (const d of Object.values(dirs)) mkdirSync(d, { recursive: true });
 
   const store = new Store(dataDir());
-  const shell = new HeadlessShell();
   const services = sidecarServices().map(
     (entry) =>
       new SupervisedService(
@@ -32,7 +34,13 @@ async function main() {
         },
         (name, method, params) => {
           // forward sidecar events to UI; pipeline stats + faces are the hot ones
-          if (method === "pipeline.stats" || method === "pipeline.faces" || method === "recorder.progress") {
+          if (
+            method === "pipeline.stats" ||
+            method === "pipeline.faces" ||
+            method === "pipeline.degraded" ||
+            method === "pipeline.recovered" ||
+            method === "recorder.progress"
+          ) {
             shell.sendToUi(method, params);
           } else {
             console.log(`[event ${name}] ${method}`, JSON.stringify(params).slice(0, 200));
@@ -44,7 +52,9 @@ async function main() {
   const hub = new Hub(store, shell, services, VERSION);
 
   shell.onRequest(async ({ method, params }) => hub.dispatch(method, params));
+  shell.onQuit?.(() => shutdown());
   await shell.start();
+  console.log(`[core] shell: ${shell.kind}`);
 
   // start sidecars (vision/media optional for basic UI boot; all supervised)
   for (const s of services) {
@@ -57,7 +67,14 @@ async function main() {
 
   process.on("SIGINT", () => void shutdown());
   process.on("SIGTERM", () => void shutdown());
+  // Last-resort cleanup for native quit paths (Cmd+Q, crash) that cannot await.
+  process.on("exit", () => {
+    for (const s of services) s.killNow();
+  });
+  let shuttingDown = false;
   async function shutdown() {
+    if (shuttingDown) return;
+    shuttingDown = true;
     console.log("[core] shutting down");
     for (const s of services) await s.stop();
     await shell.stop();
@@ -66,7 +83,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error("[core] fatal:", err);
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error("[core] fatal:", err);
+    process.exit(1);
+  });
+}
