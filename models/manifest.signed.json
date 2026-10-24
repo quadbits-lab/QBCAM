@@ -1,0 +1,43 @@
+{
+  "payload": {
+    "schema": 1,
+    "models": [
+      {
+        "id": "detector-yunet",
+        "version": "2023mar",
+        "kind": "detector",
+        "files": [
+          {
+            "url": "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
+            "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+            "bytes": 232589
+          }
+        ],
+        "license": {
+          "spdx": "Apache-2.0",
+          "commercialUse": true,
+          "url": "https://github.com/opencv/opencv_zoo/blob/main/models/face_detection_yunet/LICENSE"
+        },
+        "requires": {
+          "ort": ">=1.20"
+        }
+      },
+      {
+        "id": "swapper-byo",
+        "version": "byo",
+        "kind": "swapper",
+        "files": [],
+        "license": {
+          "spdx": "USER-PROVIDED",
+          "commercialUse": false,
+          "url": ""
+        },
+        "byo": {
+          "instructions": "Provide your own inswapper_128-class ONNX model. You are responsible for its license. QBCAM never bundles or redistributes swap weights (spec §13.3)."
+        }
+      }
+    ],
+    "builtAt": "2026-10-24T18:04:20.034Z"
+  },
+  "signature": "PXZNLTGz7ItAhFzno9JVS73UaqxNp6bG1qcBVrw16fB3m49946lGp7ko8/VNCR8PjtXdNzCzfK0s5YEziJzQBg=="
+}

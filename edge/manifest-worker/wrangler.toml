@@ -1,0 +1,8 @@
+name = "qbcam-manifest-worker"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+# Public key (ed25519 hex) used by clients to verify manifest signatures.
+# Signing happens at release time via tools/scripts/sign-manifest.ts.
+MANIFEST_PUBLIC_KEY = "PLACEHOLDER_SET_AT_DEPLOY"
