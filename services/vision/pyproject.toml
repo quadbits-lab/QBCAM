@@ -9,6 +9,7 @@ dependencies = [
   "opencv-python-headless>=4.10",
   "onnxruntime>=1.20",
   "pydantic>=2.8",
+  "websockets>=13.0",
 ]
 
 [project.scripts]
