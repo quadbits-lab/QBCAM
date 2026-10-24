@@ -1,0 +1,13 @@
+[package]
+name = "qbcam-shm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "QBCAM shared-memory ring buffer (spec §10.2) — hot-path frame transport"
+
+[dependencies]
+libc.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

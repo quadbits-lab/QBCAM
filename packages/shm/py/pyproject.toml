@@ -1,0 +1,13 @@
+[project]
+name = "qbcam-shm"
+version = "0.1.0"
+description = "QBCAM shared-memory ring buffer — Python mirror of packages/shm/SPEC.md"
+requires-python = ">=3.12"
+dependencies = ["numpy>=2.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["qbcam_shm"]

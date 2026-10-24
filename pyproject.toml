@@ -1,0 +1,9 @@
+[project]
+name = "qbcam-services"
+version = "0.1.0"
+description = "QBCAM Python services workspace (vision, media) + shared shm package"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["services/vision", "services/media", "packages/shm/py"]

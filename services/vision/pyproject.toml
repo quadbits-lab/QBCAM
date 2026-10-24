@@ -1,0 +1,35 @@
+[project]
+name = "qb-vision"
+version = "0.1.0"
+description = "QBCAM vision sidecar — detect/track/swap/blend pipeline"
+requires-python = ">=3.12"
+dependencies = [
+  "qbcam-shm",
+  "numpy>=2.0",
+  "opencv-python-headless>=4.10",
+  "onnxruntime>=1.20",
+  "pydantic>=2.8",
+]
+
+[project.scripts]
+qb-vision = "qb_vision.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["qb_vision"]
+
+[tool.uv.sources]
+qbcam-shm = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
