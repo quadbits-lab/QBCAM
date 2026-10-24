@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "packages/shm/crate",
+  "packages/ipc-rs",
   "services/camio",
   "services/recorder",
   "services/vcam/mock",

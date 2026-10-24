@@ -1,0 +1,11 @@
+[package]
+name = "qbcam-ipc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "QBCAM sidecar JSON-RPC over UDS — shared by qb-camio, qb-recorder, qb-vcam"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true

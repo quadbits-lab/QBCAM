@@ -140,10 +140,36 @@ dependencies = [
 [[package]]
 name = "qb-recorder"
 version = "0.1.0"
+dependencies = [
+ "libc",
+ "qbcam-ipc",
+ "qbcam-shm",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "qb-vcam-mock"
 version = "0.1.0"
+dependencies = [
+ "qbcam-ipc",
+ "qbcam-shm",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "qbcam-ipc"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tracing",
+]
 
 [[package]]
 name = "qbcam-shm"

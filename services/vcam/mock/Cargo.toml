@@ -4,5 +4,16 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
+description = "QBCAM mock virtual camera — §8.2 contract with a JPEG sink; native per-OS drivers land in M3"
 
 [dependencies]
+qbcam-shm = { path = "../../../packages/shm/crate" }
+qbcam-ipc = { path = "../../../packages/ipc-rs" }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[[bin]]
+name = "qb-vcam-mock"
+path = "src/main.rs"

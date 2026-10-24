@@ -1,14 +1,14 @@
 {
   "schemaVersion": "mimosa-hook-status/v1",
-  "recordedAt": "2026-10-24T17:04:05.245Z",
+  "recordedAt": "2026-10-24T17:13:05.674Z",
   "sessionId": "session_baf4a71c84123415b99979a813e44c5c",
   "event": "PostToolUse",
   "toolName": "Edit",
-  "file": "services/vision/qb_vision/server.py",
+  "file": "tools/scripts/integration-record.ts",
   "outcome": "clear",
   "coverage": "complete",
   "findingCount": 0,
-  "durationMs": 3,
+  "durationMs": 4,
   "hostState": "hook_complete",
   "reportHint": ".mimosa/reports/"
 }
