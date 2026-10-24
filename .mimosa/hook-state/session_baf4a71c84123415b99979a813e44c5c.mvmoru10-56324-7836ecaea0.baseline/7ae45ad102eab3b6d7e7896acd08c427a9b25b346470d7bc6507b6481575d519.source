@@ -1,0 +1,35 @@
+{
+  "name": "qbcam",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QBCAM — real-time AI face swap, virtual webcam & studio recorder",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "apps/desktop/src/views/studio",
+    "packages/*",
+    "edge/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "contracts:gen": "bun run --cwd packages/contracts gen",
+    "dev": "bun run --cwd apps/desktop dev",
+    "dev:headless": "bun run --cwd apps/desktop dev:headless",
+    "build": "bun run --cwd apps/desktop build",
+    "test": "bun test",
+    "test:py": "uv run --project services/vision pytest -q && uv run --project services/media pytest -q",
+    "test:rs": "cargo test --workspace",
+    "lint": "biome check .",
+    "lint:py": "ruff check services tools",
+    "fmt": "biome check --write . && ruff format services tools",
+    "typecheck": "tsc -b tsconfig.json",
+    "bench": "bun run tools/bench/run.ts",
+    "models:dev": "bun run tools/scripts/models-dev.ts",
+    "license:gate": "bun run tools/scripts/license-gate.ts",
+    "drift:guard": "bun run contracts:gen && git diff --exit-code -- packages/contracts/dist || (echo 'CONTRACT DRIFT: run bun run contracts:gen and commit' && exit 1)"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "typescript": "^5.7.0"
+  }
+}

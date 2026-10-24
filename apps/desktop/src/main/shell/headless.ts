@@ -62,7 +62,8 @@ export class HeadlessShell implements Shell {
             );
           }
           try {
-            const result = await handler?.({ method: body.method, params: body.params });
+            const fn = handler();
+            const result = await fn?.({ method: body.method, params: body.params });
             return Response.json({ jsonrpc: "2.0", id: null, result: result ?? null });
           } catch (err) {
             return Response.json({
@@ -78,11 +79,43 @@ export class HeadlessShell implements Shell {
         if (url.pathname === "/config") {
           return Response.json({ token });
         }
-        // static UI
+        // static UI (explicit content-type: module scripts require strict MIME)
         const path = url.pathname === "/" ? "/index.html" : url.pathname;
+        if (url.pathname === "/__trap.js") {
+          return new Response(
+            "window.__errs=[];window.addEventListener('error',function(e){window.__errs.push(String(e.message)+' @'+String(e.filename).split('/').pop()+':'+e.lineno)});window.addEventListener('unhandledrejection',function(e){window.__errs.push('rejection: '+String(e.reason))});",
+            { headers: { "content-type": "text/javascript; charset=utf-8" } },
+          );
+        }
         try {
           const file = Bun.file(join(uiRoot, path));
-          if (await file.exists()) return new Response(file);
+          if (await file.exists()) {
+            let html: string | null = null;
+            if (path.endsWith(".html")) {
+              html = await file.text();
+              // inject same-origin error trap before any module script (CSP-safe)
+              html = html.replace(
+                "<head>",
+                '<head><script src="/__trap.js"></script>',
+              );
+              return new Response(html, {
+                headers: { "content-type": "text/html; charset=utf-8" },
+              });
+            }
+            const types: Record<string, string> = {
+              ".js": "text/javascript; charset=utf-8",
+              ".css": "text/css; charset=utf-8",
+              ".svg": "image/svg+xml",
+              ".png": "image/png",
+              ".ico": "image/x-icon",
+              ".json": "application/json",
+              ".woff2": "font/woff2",
+            };
+            const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
+            return new Response(file, {
+              headers: { "content-type": types[ext] ?? "application/octet-stream" },
+            });
+          }
         } catch {
           // fallthrough
         }

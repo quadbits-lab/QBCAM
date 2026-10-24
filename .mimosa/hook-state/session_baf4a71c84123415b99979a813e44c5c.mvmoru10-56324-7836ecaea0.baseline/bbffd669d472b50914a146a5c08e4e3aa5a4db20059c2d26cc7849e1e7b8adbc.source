@@ -1,0 +1,157 @@
+import { useEffect, useRef } from "react";
+import { createRoot } from "react-dom/client";
+import { connectEvents, connectPreview, initApi, rpc } from "./api";
+import { useStudio } from "./store";
+import { StudioTab } from "./tabs/Studio";
+import { IdentitiesTab } from "./tabs/Identities";
+import { LibraryTab } from "./tabs/Library";
+import { ModelsTab } from "./tabs/Models";
+import { SettingsTab } from "./tabs/Settings";
+import { Wizard } from "./Wizard";
+import "./index.css";
+
+function App() {
+  const s = useStudio();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // boot: token → data loads → events
+  useEffect(() => {
+    (async () => {
+      await initApi();
+      try {
+        const [identities, library, models, states] = await Promise.all([
+          rpc<{ identities: [] }>("listIdentities"),
+          rpc<{ items: [] }>("listLibrary"),
+          rpc<{ models: [] }>("listModels"),
+          rpc<{ states: Record<string, string> }>("getServiceStates"),
+        ]);
+        s.setIdentities(identities.identities);
+        s.setLibrary(library.items);
+        s.setModels(models.models);
+        s.setServiceStates(Object.fromEntries(states.states.map((x: any) => [x.name, x.state])));
+        const seen = localStorage.getItem("qbcam.wizardDone");
+        if (!seen) s.setToast("wizard");
+      } catch (err) {
+        s.setError(String(err));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const off = connectEvents({
+      "pipeline.stats": (p) =>
+        s.setStats({
+          fps: p.fps,
+          frameMs: p.frameMs,
+          faces: p.faces,
+          executionProvider: p.executionProvider,
+          bypassed: p.bypassed,
+        }),
+      "pipeline.faces": (p) => s.setFaces(p.faces),
+      "recorder.progress": (p) => useStudio.getState().setToast(`REC ${p.seconds.toFixed(0)}s`),
+      "service.state": (p) => {
+        const cur = { ...useStudio.getState().serviceStates, [p.service]: p.state };
+        useStudio.getState().setServiceStates(cur);
+      },
+      "models.progress": (p) =>
+        useStudio.getState().setToast(`${p.modelId}: ${p.stage} ${Math.round(p.percent)}%`),
+      "vcam.state": (p) => useStudio.getState().setVcamOn(p.on),
+    });
+    return off;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // preview socket lifecycle
+  useEffect(() => {
+    if (!s.previewPort || !s.previewToken) return;
+    const off = connectPreview(s.previewPort, s.previewToken, (jpeg) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const blob = new Blob([jpeg], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext("2d")?.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+    return off;
+  }, [s.previewPort, s.previewToken]);
+
+  return (
+    <div className="flex h-screen flex-col">
+      <TopBar />
+      {s.toast === "wizard" && <Wizard />}
+      <main className="flex flex-1 overflow-hidden">
+        {s.tab === "studio" && <StudioTab canvasRef={canvasRef} />}
+        {s.tab === "identities" && <IdentitiesTab />}
+        {s.tab === "library" && <LibraryTab />}
+        {s.tab === "models" && <ModelsTab />}
+        {s.tab === "settings" && <SettingsTab />}
+      </main>
+      {s.error && (
+        <div
+          role="alert"
+          className="flex items-center justify-between bg-[var(--danger)] px-4 py-2 text-sm"
+        >
+          <span>{s.error}</span>
+          <button onClick={() => s.setError(null)} aria-label="Dismiss error">
+            ✕
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopBar() {
+  const s = useStudio();
+  const tabs: Array<[string, string]> = [
+    ["studio", "Studio"],
+    ["identities", "Identities"],
+    ["library", "Library"],
+    ["models", "Models"],
+    ["settings", "Settings"],
+  ];
+  const healthColor = (state: string | undefined) =>
+    state === "ready" ? "bg-[var(--ok)]" : state === "crashed" ? "bg-[var(--danger)]" : "bg-[var(--text-1)]";
+  return (
+    <header className="flex items-center gap-6 border-b border-[var(--border)] bg-[var(--bg-1)] px-4 py-2">
+      <span className="flex items-center gap-2 font-semibold">
+        <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--accent-2)]" aria-hidden />
+        QBCAM
+      </span>
+      <nav aria-label="Sections" className="flex gap-4">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => s.setTab(id as any)}
+            aria-current={s.tab === id ? "page" : undefined}
+            className={`rounded px-2 py-1 text-sm ${
+              s.tab === id ? "bg-[var(--bg-2)] text-[var(--text-0)]" : "text-[var(--text-1)] hover:text-[var(--text-0)]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="ml-auto flex items-center gap-3 text-xs text-[var(--text-1)]">
+        {Object.entries(s.serviceStates).map(([name, state]) => (
+          <span key={name} className="flex items-center gap-1.5">
+            <span className={`inline-block h-2 w-2 rounded-full ${healthColor(state)}`} aria-hidden />
+            {name}
+          </span>
+        ))}
+        <span className="mono">
+          {s.stats.fps.toFixed(0)} FPS · {s.stats.frameMs.toFixed(0)} ms
+        </span>
+      </div>
+    </header>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(<App />);

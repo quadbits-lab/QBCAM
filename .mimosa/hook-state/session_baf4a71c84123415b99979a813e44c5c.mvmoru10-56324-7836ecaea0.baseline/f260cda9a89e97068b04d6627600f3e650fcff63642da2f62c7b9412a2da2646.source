@@ -1,0 +1,15 @@
+{
+  "name": "@qbcam/desktop",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/main/index.ts",
+    "dev:headless": "bun run src/main/index.ts --headless",
+    "build": "echo 'electrobun build wired in P8'",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@qbcam/contracts": "workspace:*",
+    "@qbcam/shm-ts": "workspace:*"
+  }
+}

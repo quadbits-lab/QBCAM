@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:*; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'"
+    />
+    <title>QBCAM Studio</title>
+    <script>
+      // bootstrap error trap — surfaced by "Show diagnostics" in dev
+      window.__errs = [];
+      window.addEventListener("error", (e) => {
+        window.__errs.push(String(e.message) + " @" + String(e.filename).split("/").pop() + ":" + e.lineno);
+        const el = document.getElementById("boot-errors");
+        if (el) el.textContent = window.__errs.join("\n");
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        window.__errs.push("rejection: " + String(e.reason));
+        const el = document.getElementById("boot-errors");
+        if (el) el.textContent = window.__errs.join("\n");
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <pre id="boot-errors" style="color: #ff5c7a; font-size: 11px; white-space: pre-wrap"></pre>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

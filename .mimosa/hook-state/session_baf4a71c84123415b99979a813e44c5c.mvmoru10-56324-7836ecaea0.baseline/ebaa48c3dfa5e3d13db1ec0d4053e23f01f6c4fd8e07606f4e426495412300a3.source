@@ -1,0 +1,15 @@
+{
+  "name": "@qbcam/contracts",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./settings": "./src/settings.ts"
+  },
+  "scripts": {
+    "gen": "bun run scripts/gen.ts"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.0"
+  }
+}

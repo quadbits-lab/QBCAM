@@ -17,6 +17,7 @@ export class Hub {
   private modelManager: ModelManagerHandle;
   private activeRecording: { id: string; path: string } | null = null;
   private activeSessionId: string | null = null;
+  private activeRingOut: string | null = null;
   private vcamOn = false;
 
   constructor(
@@ -66,13 +67,26 @@ export class Hub {
       case "listCameras":
         return this.svc("camio").client!.request("capture.list");
       case "listIdentities":
-        return this.store.listIdentities();
+        return { identities: this.store.listIdentities() };
       case "importIdentity":
         return this.importIdentity(params as ImportIdentityParams);
       case "deleteIdentity":
         return this.deleteIdentity(params as { identityId: string });
       case "listLibrary":
         return { items: this.store.listLibrary() };
+      case "library.delete": {
+        const info = this.store.deleteLibraryItem((params as { id: string }).id);
+        if (info) {
+          try {
+            const file = Bun.file(info.path);
+            if (await file.exists()) await Bun.write(info.path, "");
+            await Bun.write(info.path + ".xmp", "").catch(() => {});
+          } catch {
+            // best-effort removal
+          }
+        }
+        return { ok: !!info };
+      }
       case "startPipeline":
         return this.startPipeline(params as { identityId: string | null });
       case "stopPipeline":
@@ -109,6 +123,12 @@ export class Hub {
             state: s.state,
           })),
         };
+      case "getPreview": {
+        const info = await this.svc("vision").client!.request<{ port: number; token: string }>(
+          "preview.info",
+        );
+        return { port: info.port, token: info.token };
+      }
       default:
         throw new Error(`unknown ui method: ${method}`);
     }
@@ -201,6 +221,7 @@ export class Hub {
       settings.camera.deviceId === "auto" ? (cameras[0]?.id ?? "fake") : settings.camera.deviceId;
     const session = randomUUID();
     this.activeSessionId = session;
+    this.store.insertSession({ id: session, mode: "live", startedAt: Date.now() });
     ringIn = `qbcam.${session.slice(0, 4)}.frames.in`;
     const ringOut = `qbcam.${session.slice(0, 4)}.frames.out`;
     await camio.client!.request("capture.open", {
@@ -220,6 +241,7 @@ export class Hub {
       preset: settings.pipeline.preset,
       identityBindings,
     });
+    this.activeRingOut = ringOut;
     return { ...result, ringOut, session };
   }
 
@@ -228,13 +250,15 @@ export class Hub {
   private async startRecording() {
     const settings = loadSettings();
     const recorder = this.svc("recorder");
-    const ringOut = `qbcam.rec.${Date.now().toString(36)}.frames.out`;
+    if (!this.activeRingOut) {
+      throw new Error("pipeline not running — start the pipeline before recording");
+    }
     const dir = settings.record.dir.replace("~", process.env.HOME ?? "~");
     mkdirSync(dir, { recursive: true });
     const res = await recorder.client!.request<{ recordingId: string; path: string }>(
       "recorder.start",
       {
-        ringOut,
+        ringOut: this.activeRingOut,
         container: settings.record.container,
         codec: settings.record.codec,
         audio: settings.record.audio,
@@ -265,8 +289,27 @@ export class Hub {
       container: loadSettings().record.container,
       createdAt: Date.now(),
     });
+    // TS-02: provenance is mandatory on saved outputs (not removable via UI)
+    let signed = false;
+    try {
+      const media = this.svc("media");
+      const sign = await media.client!.request<{ signed: boolean; sidecarPath: string }>(
+        "media.sign",
+        { path: res.path, kind: "recording", faceSwap: true },
+      );
+      signed = sign.signed;
+      this.store.insertProvenance({
+        id: randomUUID(),
+        assetId: res.recordingId,
+        manifestJson: sign.sidecarPath,
+        signer: "qb-media/xmp-v0",
+        signedAt: Date.now(),
+      });
+    } catch (err) {
+      console.warn("[hub] provenance signing failed:", err);
+    }
     this.activeRecording = null;
-    return res;
+    return { ...res, signed };
   }
 
   private async captureStill(p: { format: string }) {
@@ -277,10 +320,15 @@ export class Hub {
       mode: "single",
       format: p.format ?? "png",
       outputDir: dir,
+      ringOut: this.activeRingOut ?? "",
     });
+    if (!this.activeRingOut) {
+      return { paths: [], signed: false, error: "pipeline not running" };
+    }
     for (const path of res.paths) {
+      const snapshotId = randomUUID();
       this.store.insertSnapshot({
-        id: randomUUID(),
+        id: snapshotId,
         sessionId: this.activeSessionId,
         path,
         w: 0,
@@ -288,6 +336,15 @@ export class Hub {
         format: p.format ?? "png",
         createdAt: Date.now(),
       });
+      if (res.signed) {
+        this.store.insertProvenance({
+          id: randomUUID(),
+          assetId: snapshotId,
+          manifestJson: `${path}.xmp`,
+          signer: "qb-media/xmp-v0",
+          signedAt: Date.now(),
+        });
+      }
     }
     return res;
   }

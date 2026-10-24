@@ -6,6 +6,7 @@
   "type": "module",
   "workspaces": [
     "apps/*",
+    "apps/desktop/src/views/studio",
     "packages/*",
     "edge/*",
     "tools/*"

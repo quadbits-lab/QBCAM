@@ -35,7 +35,7 @@ class VisionService:
             if self.preview.port is None:
                 self.preview.start()
                 s.notify("preview.port", {"port": self.preview.port, "token": s.token})
-            return {"port": self.preview.port}
+            return {"port": self.preview.port, "token": s.token}
 
         def _start(params: dict) -> dict:
             if self._running.is_set():

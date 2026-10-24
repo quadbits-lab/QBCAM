@@ -154,6 +154,18 @@ export class Store {
 
   // ---- library ----
 
+  insertSession(session: { id: string; mode: string; startedAt: number }) {
+    this.db
+      .prepare("INSERT OR IGNORE INTO session (id, mode, started_at) VALUES (?,?,?)")
+      .run(session.id, session.mode, session.startedAt);
+  }
+
+  endSession(id: string, statsJson: string) {
+    this.db
+      .prepare("UPDATE session SET ended_at = ?, stats_json = ? WHERE id = ?")
+      .run(Date.now(), statsJson, id);
+  }
+
   insertRecording(rec: {
     id: string;
     sessionId: string | null;

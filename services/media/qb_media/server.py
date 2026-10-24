@@ -24,7 +24,6 @@ class MediaService:
     def _register(self) -> None:
         s = self.server
 
-        @s.method("media.thumbnail")
         def _thumbnail(params: dict) -> dict:
             src = validate_asset_path(params["path"])
             out_dir = Path.home() / ".qbcam" / "cache" / "thumbs"
@@ -35,7 +34,6 @@ class MediaService:
             img.convert("RGB").save(thumb_path, "JPEG", quality=85)
             return {"thumbPath": str(thumb_path)}
 
-        @s.method("media.sign")
         def _sign(params: dict) -> dict:
             path = validate_asset_path(params["path"])
             if not path.exists():
@@ -47,7 +45,6 @@ class MediaService:
             )
             return {"signed": True, "sidecarPath": sidecar}
 
-        @s.method("still.capture")
         def _still(params: dict) -> dict:
             """Capture stills from a ring (single/burst/timer)."""
             from qbcam_shm import RingReader
@@ -92,6 +89,10 @@ class MediaService:
                 write_xmp_sidecar(p, face_swap=True, consent_recorded=True)
                 signed = True
             return {"paths": paths, "signed": signed}
+
+        s.method("media.thumbnail", _thumbnail)
+        s.method("media.sign", _sign)
+        s.method("still.capture", _still)
 
     def serve(self) -> None:
         self.server.serve()

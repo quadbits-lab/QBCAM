@@ -1,9 +1,7 @@
 /**
  * Main-process glue for the model-manager worker (spec §13.2).
  */
-import { Worker } from "bun";
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
 import { modelsDir } from "../paths";
 
 export interface ModelManagerHandle {
@@ -16,7 +14,7 @@ export interface ModelManagerHandle {
 export function startModelManager(): ModelManagerHandle {
   const dir = modelsDir();
   mkdirSync(dir, { recursive: true });
-  const worker = new Worker(new URL("./model-manager.worker.ts", import.meta.url));
+  const worker = new Worker(new URL("./model-manager.worker.ts", import.meta.url).href);
   let progressListener: ((m: { modelId: string; stage: string; percent: number }) => void) | null =
     null;
   let doneListener: ((m: { modelId: string; ok: boolean; error?: string }) => void) | null = null;
