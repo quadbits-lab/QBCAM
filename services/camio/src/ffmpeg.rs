@@ -279,9 +279,14 @@ fn classify_failure(detail: &str, fallback: &str) -> CaptureError {
         || lower.contains("cannot use")
         || lower.contains("failed to create av capture")
     {
+        let device = if lower.contains("audio") || lower.contains("microphone") {
+            "microphone"
+        } else {
+            "camera"
+        };
         return CaptureError::new(
             "PERMISSION_DENIED",
-            "camera or microphone access is denied",
+            format!("{device} access is denied"),
             if detail.is_empty() { fallback.to_string() } else { detail.to_string() },
         );
     }
@@ -292,6 +297,13 @@ fn classify_failure(detail: &str, fallback: &str) -> CaptureError {
         return CaptureError::new(
             "DEVICE_BUSY",
             "the device is already in use by another app",
+            if detail.is_empty() { fallback.to_string() } else { detail.to_string() },
+        );
+    }
+    if lower.contains("invalid audio device index") || lower.contains("invalid device index") {
+        return CaptureError::new(
+            "DEVICE_NOT_FOUND",
+            "the selected audio device index is not valid",
             if detail.is_empty() { fallback.to_string() } else { detail.to_string() },
         );
     }

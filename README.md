@@ -1,5 +1,7 @@
 # QBCAM
 
+![QBCAM — real-time AI face swap, virtual webcam and studio recorder](docs/assets/hero.png)
+
 Real-time AI face swap, virtual webcam & studio recorder for the desktop —
 implemented from the v0.1.0 development specification.
 

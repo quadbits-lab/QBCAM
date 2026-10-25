@@ -382,7 +382,8 @@ export class Hub {
   }
 
   private async resolveCamera(settings: ReturnType<typeof loadSettings>): Promise<string> {
-    if (settings.onboarding.cameraMode === "synthetic") return "fake";
+    // The device id is authoritative: onboarding writes "fake" for the
+    // synthetic path, and Settings can switch between real/synthetic later.
     let cameras: CameraInfo[] = [];
     try {
       const res = await this.svc("camio").client!.request<{
